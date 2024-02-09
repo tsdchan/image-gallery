@@ -1,0 +1,17 @@
+{
+    "albums": [
+      {
+        "id": 1,
+        "title": "Album 1",
+        "path": "gallery1",
+        "description": "Description of Album 1"
+      },
+      {
+        "id": 2,
+        "title": "Album 2",
+        "path": "gallery2",
+        "description": "Description of Album 2"
+      }
+    ]
+  }
+  
