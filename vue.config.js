@@ -1,3 +1,5 @@
 module.exports = {
-  // Your Vue CLI configuration options
+  publicPath: process.env.NODE_ENV === 'production'
+    ? '/pwa/image-gallery/' // Adjust according to your production path
+    : '/'
 };

@@ -2,6 +2,7 @@
   "name": "image-gallery",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/pwa/image-gallery/",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",

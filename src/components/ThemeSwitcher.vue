@@ -27,8 +27,13 @@ export default {
     }
   },
   mounted() {
-    // Apply the saved theme preference on load and set checkbox state
-    this.isDarkMode = localStorage.getItem('theme') === 'dark';
+    if (localStorage.getItem('theme')){
+        // Apply the saved theme preference on load and set checkbox state
+        this.isDarkMode = localStorage.getItem('theme') === 'dark';
+    } else {
+        // Apply default browser darkmode
+        this.isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
     if (this.isDarkMode) {
       document.body.classList.add('dark-mode');
     }

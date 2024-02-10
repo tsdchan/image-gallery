@@ -2,73 +2,73 @@
     "images": [
         {
         "id": 1,
-        "src": "image01.jpeg",
+        "src": "gallery1/image01.jpeg",
         "title": "Image 1",
         "description": "Sample description for image 1."
         },
         {
         "id": 2,
-        "src": "image02.jpeg",
-        "title": "Image 2",
-        "description": "Sample description for image 2."
+        "src": "https://th.bing.com/th/id/OIG.LTaVFacabNQc22SAk1r1?w=1024&h=1024&rs=1&pid=ImgDetMain",
+        "title": "Online Image 1",
+        "description": "Online Sample description for image 1."
         },
         {
         "id": 3,
-        "src": "image03.jpeg",
+        "src": "gallery1/image03.jpeg",
         "title": "Image 3",
         "description": "Sample description for image 3."
         },
         {
         "id": 4,
-        "src": "image04.jpeg",
+        "src": "gallery1/image04.jpeg",
         "title": "Image 4",
         "description": "Sample description for image 4."
         },
         {
         "id": 5,
-        "src": "image05.jpeg",
+        "src": "gallery1/image05.jpeg",
         "title": "Image 5",
         "description": "Sample description for image 5."
         },
         {
         "id": 6,
-        "src": "image06.jpeg",
+        "src": "gallery1/image06.jpeg",
         "title": "Image 6",
         "description": "Sample description for image 6."
         },
         {
         "id": 7,
-        "src": "image07.jpeg",
+        "src": "gallery1/image07.jpeg",
         "title": "Image 7",
         "description": "Sample description for image 7."
         },
         {
         "id": 8,
-        "src": "image08.jpeg",
+        "src": "gallery1/image08.jpeg",
         "title": "Image 8",
         "description": "Sample description for image 8."
         },
         {
         "id": 9,
-        "src": "image09.jpeg",
+        "src": "gallery1/image09.jpeg",
         "title": "Image 9",
         "description": "Sample description for image 9."
         },
         {
         "id": 10,
-        "src": "image10.jpeg",
+        "src": "gallery1/image10.jpeg",
         "title": "Image 10",
         "description": "Sample description for image 10."
         },
         {
         "id": 11,
-        "src": "image11.jpeg",
+        "src": "gallery1/image11.jpeg",
         "title": "Image 11",
         "description": "Sample description for image 11."
         },
         {
         "id": 12,
-        "src": "image12.jpeg",
+        "src": "gallery1/image12.jpeg",
         "title": "Image 12",
         "description": "Sample description for image 12."
         }
