@@ -1,0 +1,5 @@
+@mixin theme-colors($theme-colors) {
+    @each $color-name, $color-value in $theme-colors {
+        --theme-#{$color-name}: #{$color-value};
+    }
+}

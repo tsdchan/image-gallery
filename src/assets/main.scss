@@ -1,0 +1,31 @@
+@import 'themes';
+@import 'mixin';
+
+:root {
+    @include theme-colors($light-theme-colors);
+}
+
+.dark-mode {
+    @include theme-colors($dark-theme-colors);
+    
+    // Overriding card styles for dark mode
+    .card {
+      background-color: var(--theme-background-color);
+      color: var(--theme-text-color);
+      border: var(--theme-border-color) solid;
+    }
+}
+
+// Example usage of theme variables
+body {
+    background-color: var(--theme-background-color);
+    color: var(--theme-text-color);
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

@@ -1,14 +1,19 @@
 <template>
-  <div class="album-index">
-    <h1>Albums</h1>
-    <ul>
-      <li v-for="album in albums" :key="album.id">
-        <router-link :to="{ name: 'ImageGallery', params: { path: album.path }}">
-          {{ album.title }}
+  <div class="container py-4">
+    <h1 class="mb-4">Albums</h1>
+    <div class="row">
+      <div class="col-md-4 mb-4" v-for="album in albums" :key="album.id">
+        <router-link :to="{ name: 'ImageGallery', params: { path: album.path }}" class="text-decoration-none text-dark">
+          <div class="card">
+            <img :src="album.thumbnail" class="card-img-top" :alt="`Thumbnail for ${album.title}`">
+            <div class="card-body">
+              <h5 class="card-title">{{ album.title }}</h5>
+              <p class="card-text">{{ album.description }}</p>
+            </div>
+          </div>
         </router-link>
-        <p>{{ album.description }}</p>
-      </li>
-    </ul>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -27,7 +32,6 @@ export default {
   },
   methods: {
     fetchAlbums() {
-      // Path to the JSON file in the public directory
       axios.get('/albums.json')
         .then(response => {
           this.albums = response.data.albums;
@@ -40,13 +44,6 @@ export default {
 };
 </script>
 
-<style>
-/* Add styles for your album index page */
-.album-index ul {
-  list-style-type: none;
-  padding: 0;
-}
-.album-index li {
-  margin-bottom: 1rem;
-}
+<style scoped>
+
 </style>

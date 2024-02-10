@@ -1,24 +1,30 @@
 <template>
-    <div>
-        <!-- Breadcrumb Navigation -->
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <router-link to="/">Album List</router-link>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">{{ albumTitle }}</li>
-            </ol>
-        </nav>
+  <div class="container mt-2">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="breadcrumb-container">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <router-link to="/">Album List</router-link>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ albumTitle }}</li>
+      </ol>
+    </nav>
 
-        <!-- Image Gallery Grid -->
-        <div class="gallery">
-            <div v-for="image in images" :key="image.id" class="gallery-item">
-            <img :src="`/${currentAlbumFolder}/${image.src}`" :alt="image.title">
-            <h3>{{ image.title }}</h3>
-            <p>{{ image.description }}</p>
-            </div>
+    <div class="description mb-4">{{albumDescription}}</div>
+
+    <!-- Image Gallery Grid -->
+    <div class="row">
+      <div v-for="image in images" :key="image.id" class="col-sm-6 col-md-4 col-lg-3 mb-4">
+        <div class="card h-100">
+          <img :src="`/${currentAlbumFolder}/${image.src}`" class="card-img-top" :alt="image.title">
+          <div class="card-body">
+            <h5 class="card-title">{{ image.title }}</h5>
+            <p class="card-text">{{ image.description }}</p>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </template>
 
 <script>
@@ -32,6 +38,7 @@ export default {
       currentAlbumFolder: '',
       albumTitle: '',
       albumDescription: '',
+      albumJson: '',
     };
   },
   async mounted() {
@@ -50,6 +57,7 @@ export default {
           //this.currentAlbumFolder = currentAlbum.path;
           this.albumTitle = currentAlbum.title;
           this.albumDescription = currentAlbum.description;
+          this.albumJson = currentAlbum.json;
         } else {
           console.error("Album not found.");
         }
@@ -59,7 +67,7 @@ export default {
     },
     async fetchImages() {
       try {
-        const response = await axios.get(`/${this.currentAlbumFolder}/images.json`);
+        const response = await axios.get(`${this.albumJson}`);
         this.images = response.data.images;
       } catch (error) {
         console.error("There was an error fetching the images:", error);
@@ -69,12 +77,25 @@ export default {
 };
 </script>
 
-
 <style scoped>
+.description {
+  font-weight: 300;
+}
+
+.breadcrumb-container .breadcrumb {
+  background-color: #d8d8d8;
+  border-radius: 10px;
+  padding: .75rem 1rem;
+}
+
+.breadcrumb-container .breadcrumb-item + .breadcrumb-item::before {
+  color: #333333;
+}
+
 .breadcrumb {
   padding: 1rem 0;
   background: none;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .gallery {
