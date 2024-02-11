@@ -1,9 +1,14 @@
 <template>
   <div class="container py-4">
     <h1 class="mb-4">Albums</h1>
+    <div v-if="loading" class="text-center">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
     <div class="row">
-      <div class="col-md-4 mb-4" v-for="album in albums" :key="album.id">
-        <router-link :to="{ name: 'ImageGallery', params: { path: album.path }}" class="text-decoration-none text-dark">
+      <div class="col-sm-6 col-md-4 col-lg-3" v-for="album in albums" :key="album.id">
+        <router-link :to="{ name: 'ImageGallery', params: { path: album.path }}" class="text-decoration-none text-dark" :aria-label="`Album: ${album.title}`">
           <div class="card">
           <div class="card-img-top square-image" :style="{ backgroundImage: 'url(' + album.thumbnail + ')' }"></div>
             <div class="card-body">
@@ -25,6 +30,7 @@ export default {
   data() {
     return {
       albums: [],
+      loading: false,
     };
   },
   mounted() {
@@ -38,7 +44,7 @@ export default {
       return this.isAbsolutePath(path) ? path : `${process.env.VUE_APP_BASE_URL}${path}`;
     },
     fetchAlbums() {
-      console.log('Requesting URL:', `${process.env.VUE_APP_BASE_URL}albums.json`);
+      this.loading = true;
       axios.get(`${process.env.VUE_APP_BASE_URL}albums.json`)
         .then(response => {
           this.albums = response.data.albums.map(album => ({
@@ -50,6 +56,9 @@ export default {
         })
         .catch(error => {
           console.error("There was an error fetching the albums:", error);
+        })
+        .finally(() => {
+          this.loading = false; // Stop loading
         });
     }
   }

@@ -9,17 +9,19 @@
         <li class="breadcrumb-item active" aria-current="page">{{ albumTitle }}</li>
       </ol>
     </nav>
+    <div v-if="loading" class="text-center">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
 
     <div class="description mb-4">{{albumDescription}}</div>
 
     <!-- Image Gallery Grid -->
     <div class="row">
       <div v-for="(image, index) in images" :key="image.id" class="col-sm-6 col-md-4 col-lg-3 mb-4" @click="openLightbox(index)">
-        <div class="card h-100">
-          <div class="square-image" :style="{ backgroundImage: 'url(' + image.src + ')' }"></div>
-          <div class="card-body">
-            <div class="card-title">{{ image.title }}</div>
-          </div>
+        <div class="card h-100" role="button" tabindex="0" @click="openLightbox(index)" @keydown.enter="openLightbox(index)" :aria-label="`Open image lightbox for ${image.title}`">
+          <div class="square-image" :style="{ backgroundImage: 'url(' + image.src + ')' }" ></div>
         </div>
       </div>
     </div>
@@ -27,7 +29,7 @@
     <!-- Lightbox Modal -->
     
     <div v-if="lightbox.visible" class="lightbox-modal" @click.self="closeLightbox">
-      <button class="lightbox-close" @click.stop="closeLightbox">X</button>
+      <button class="lightbox-close" @click.stop="closeLightbox" aria-label="Close lightbox">X</button>
 
       <div class="lightbox-imageinfo">
         <!-- Image Preview -->
@@ -41,8 +43,8 @@
       </div>
 
       <!-- Navigation Buttons -->
-      <button class="nav-btn left" @click.stop.prevent="navigate('prev')">&lt;</button>
-      <button class="nav-btn right" @click.stop.prevent="navigate('next')">&gt;</button>
+      <button class="nav-btn left" @click.stop.prevent="navigate('prev')" aria-label="Previous image">&lt;</button>
+      <button class="nav-btn right" @click.stop.prevent="navigate('next')" aria-label="Next image">&gt;</button>
 
       <!-- Thumbnail List -->
       <div class="thumbnail-container" ref="thumbnailContainer">
@@ -74,6 +76,7 @@ export default {
         currentIndex: 0,
         currentImage: {},
       },
+      loading: false,
     };
   },
   async mounted() {
@@ -109,16 +112,41 @@ export default {
     },
     async fetchImages() {
       try {
+        this.loading = true;
         const response = await axios.get(this.resolvePath(this.albumJson));
-        this.images = response.data.images.map(image => ({
+        const fetchedImages = response.data.images.map(image => ({
           ...image,
           src: this.resolvePath(image.src),
         }));
+
+        // Preload images
+        fetchedImages.forEach(image => {
+          const img = new Image();
+          img.src = image.src;
+        });
+
+        this.images = fetchedImages;
       } catch (error) {
         console.error("There was an error fetching the images:", error);
+      } finally {
+        this.loading = false;
       }
     },
     openLightbox(index) {
+      // Preload selected image
+      const img = new Image();
+      img.src = this.images[index].src;
+
+      // Optionally, preload neighboring images for faster navigation
+      if (this.images[index + 1]) {
+        const nextImg = new Image();
+        nextImg.src = this.images[index + 1].src;
+      }
+      if (this.images[index - 1]) {
+        const prevImg = new Image();
+        prevImg.src = this.images[index - 1].src;
+      }
+
       this.lightbox.currentIndex = index;
       this.lightbox.visible = true;
     },
@@ -155,7 +183,6 @@ export default {
       const activeThumb = this.$refs[`thumb-${index}`][0];
       if (container && activeThumb) {
         const containerRect = container.getBoundingClientRect();
-        console.log(containerRect);
         const thumbRect = activeThumb.getBoundingClientRect();
         if (thumbRect.left < containerRect.left || thumbRect.right > containerRect.right) {
           container.scrollLeft += thumbRect.left - containerRect.left - (containerRect.width / 2) + (thumbRect.width / 2);
@@ -302,8 +329,8 @@ export default {
 }
 
 .thumbnail {
-  width: 14vw;
-  height: 14vw;
+  width: 60px;
+  height: 60px;
   max-height: 100px;
   margin: 0 5px;
   cursor: pointer;

@@ -2,6 +2,7 @@
 
 <template>
   <div class="theme-switcher">
+    <button id="fullscreenToggle" @click="toggleFullScreen">Fullscreen</button>
     <span>Dark Mode:</span>
     <label class="switch">
         <input type="checkbox" :checked="isDarkMode" @change="toggleTheme" aria-label="Toggle dark mode">
@@ -24,6 +25,26 @@ export default {
       document.body.classList.toggle('dark-mode', this.isDarkMode);
       // Save the theme preference to localStorage
       localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
+    },
+    toggleFullScreen() {
+        if (!document.fullscreenElement) {
+        this.requestFullScreen(document.documentElement); // Pass the element you want to display in fullscreen mode
+        } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+        }
+    },
+    requestFullScreen(element) {
+        if (element.requestFullscreen) {
+        element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) { /* Firefox */
+        element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+        element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) { /* IE/Edge */
+        element.msRequestFullscreen();
+        }
     }
   },
   mounted() {
@@ -109,5 +130,12 @@ input:checked + .slider:before {
 
 .slider.round:before {
   border-radius: 50%;
+}
+
+/* Hide fullscreen toggle on mobile */
+@media (max-width: 769px) {
+  #fullscreenToggle {
+    display: none;
+  }
 }
 </style>
