@@ -9,42 +9,37 @@
         <li class="breadcrumb-item active" aria-current="page">{{ albumTitle }}</li>
       </ol>
     </nav>
-    <div v-if="loading" class="text-center">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
 
     <div class="description mb-4">{{albumDescription}}</div>
 
     <!-- Image Gallery Grid -->
     <div class="row">
-      <div v-for="(image, index) in images" :key="image.id" class="col-sm-6 col-md-4 col-lg-3 mb-4" @click="openLightbox(index)">
-        <div class="card h-100" role="button" tabindex="0" @click="openLightbox(index)" @keydown.enter="openLightbox(index)" :aria-label="`Open image lightbox for ${image.title}`">
-          <div class="square-image" :style="{ backgroundImage: 'url(' + image.src + ')' }" ></div>
+      <div v-for="(image, index) in images" :key="image.id"
+          class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4" @click="openLightbox(index)">
+        <div class="card h-100">
+          <div class="square-image" :style="{ backgroundImage: 'url(' + image.src + ')' }"></div>
         </div>
       </div>
     </div>
 
     <!-- Lightbox Modal -->
-    
-    <div v-if="lightbox.visible" class="lightbox-modal" @click.self="closeLightbox">
-      <button class="lightbox-close" @click.stop="closeLightbox" aria-label="Close lightbox">X</button>
+    <div v-if="lightbox.visible" class="lightbox-modal" @click.self="closeLightbox" 
+        @touchstart="handleTouchStart" 
+        @touchmove="handleTouchMove" 
+        @touchend="handleTouchEnd">
+      <button class="lightbox-close" @click.stop="closeLightbox">X</button>
+      <!-- Image Preview -->
+      <img :src="`${images[lightbox.currentIndex].src}`" class="lightbox-image" :alt="images[lightbox.currentIndex].title">
 
-      <div class="lightbox-imageinfo">
-        <!-- Image Preview -->
-        <img :src="`${images[lightbox.currentIndex].src}`" class="lightbox-image" :alt="images[lightbox.currentIndex].title">
-
-        <!-- Image Title and Description -->
-        <div class="lightbox-info">
-          <h3 class="lightbox-title">{{ images[lightbox.currentIndex].title }}</h3>
-          <p class="lightbox-description">{{ images[lightbox.currentIndex].description }}</p>
-        </div>
+      <!-- Image Title and Description -->
+      <div class="lightbox-info">
+        <h3 class="lightbox-title">{{ images[lightbox.currentIndex].title }}</h3>
+        <p class="lightbox-description">{{ images[lightbox.currentIndex].description }}</p>
       </div>
 
       <!-- Navigation Buttons -->
-      <button class="nav-btn left" @click.stop.prevent="navigate('prev')" aria-label="Previous image">&lt;</button>
-      <button class="nav-btn right" @click.stop.prevent="navigate('next')" aria-label="Next image">&gt;</button>
+      <button class="nav-btn left" @click.stop.prevent="navigate('prev')">&lt;</button>
+      <button class="nav-btn right" @click.stop.prevent="navigate('next')">&gt;</button>
 
       <!-- Thumbnail List -->
       <div class="thumbnail-container" ref="thumbnailContainer">
@@ -75,8 +70,11 @@ export default {
         visible: false,
         currentIndex: 0,
         currentImage: {},
+        touchStartX: 0,
+        touchStartY: 0,
+        touchEndX: 0,
+        touchEndY: 0,
       },
-      loading: false,
     };
   },
   async mounted() {
@@ -112,41 +110,16 @@ export default {
     },
     async fetchImages() {
       try {
-        this.loading = true;
         const response = await axios.get(this.resolvePath(this.albumJson));
-        const fetchedImages = response.data.images.map(image => ({
+        this.images = response.data.images.map(image => ({
           ...image,
           src: this.resolvePath(image.src),
         }));
-
-        // Preload images
-        fetchedImages.forEach(image => {
-          const img = new Image();
-          img.src = image.src;
-        });
-
-        this.images = fetchedImages;
       } catch (error) {
         console.error("There was an error fetching the images:", error);
-      } finally {
-        this.loading = false;
       }
     },
     openLightbox(index) {
-      // Preload selected image
-      const img = new Image();
-      img.src = this.images[index].src;
-
-      // Optionally, preload neighboring images for faster navigation
-      if (this.images[index + 1]) {
-        const nextImg = new Image();
-        nextImg.src = this.images[index + 1].src;
-      }
-      if (this.images[index - 1]) {
-        const prevImg = new Image();
-        prevImg.src = this.images[index - 1].src;
-      }
-
       this.lightbox.currentIndex = index;
       this.lightbox.visible = true;
     },
@@ -183,13 +156,43 @@ export default {
       const activeThumb = this.$refs[`thumb-${index}`][0];
       if (container && activeThumb) {
         const containerRect = container.getBoundingClientRect();
+        console.log(containerRect);
         const thumbRect = activeThumb.getBoundingClientRect();
         if (thumbRect.left < containerRect.left || thumbRect.right > containerRect.right) {
           container.scrollLeft += thumbRect.left - containerRect.left - (containerRect.width / 2) + (thumbRect.width / 2);
         }
       }
     },
-  }
+    handleTouchStart(event) {
+      this.lightbox.touchStartX = event.touches[0].clientX;
+      this.lightbox.touchStartY = event.touches[0].clientY;
+      this.lightbox.touchEndX = null; // Reset end coordinates
+      this.lightbox.touchEndY = null;
+    },
+    handleTouchMove(event) {
+      // Prevent scrolling while swiping
+      event.preventDefault();
+      this.lightbox.touchEndX = event.touches[0].clientX;
+      this.lightbox.touchEndY = event.touches[0].clientY;
+    },
+    handleTouchEnd() {
+      if (!this.lightbox.touchEndX || !this.lightbox.touchEndY) return; // Ensure touch move happened
+      const deltaX = this.lightbox.touchEndX - this.lightbox.touchStartX;
+      const deltaY = this.lightbox.touchEndY - this.lightbox.touchStartY;
+      const absDeltaX = Math.abs(deltaX);
+      const absDeltaY = Math.abs(deltaY);
+
+      // Determine if swipe is more horizontal than vertical and exceeds a threshold
+      if (absDeltaX > absDeltaY && absDeltaX > 50) {
+        // Swipe is horizontal
+        if (deltaX > 0) {
+          this.navigate('prev'); // Swipe right to left
+        } else {
+          this.navigate('next'); // Swipe left to right
+        }
+      }
+    }
+  },
 };
 </script>
 
@@ -250,15 +253,9 @@ export default {
   z-index: 1050;
 }
 
-.lightbox-imageinfo {
-  max-width: 80%;
-  max-height: 90%;
-}
-
-
 .lightbox-image {
-  width: 100%;
-  max-height: 80%;
+  max-width: 80%;
+  max-height: 64%;
 }
 
 .lightbox-close {
@@ -281,9 +278,9 @@ export default {
 
 .lightbox-info {
   color: #fff;
-  text-align: left;
-  padding: 4px;
-  width: 100%;
+  text-align: center; /* Center-align the text for aesthetics */
+  padding: 4px; /* Add some padding around the text for readability */
+  width: 80%;
 }
 
 .lightbox-title {
@@ -295,6 +292,9 @@ export default {
 .lightbox-description {
   margin-top: 2px;
   font-size: 12px;
+  max-width: 80%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .nav-btn {
@@ -329,8 +329,8 @@ export default {
 }
 
 .thumbnail {
-  width: 60px;
-  height: 60px;
+  width: 14vw;
+  height: 14vw;
   max-height: 100px;
   margin: 0 5px;
   cursor: pointer;
@@ -354,5 +354,16 @@ export default {
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
+}
+
+@media (max-width: 1023px) and (orientation: landscape) {
+  .thumbnail {
+    max-height: 36px;
+    max-width: 36px;
+  }
+  .lightbox-image {
+    max-width: 80vw;
+    max-height: 60vh;
+  }
 }
 </style>
