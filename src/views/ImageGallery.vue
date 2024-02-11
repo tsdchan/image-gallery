@@ -18,24 +18,40 @@
         <div class="card h-100">
           <div class="square-image" :style="{ backgroundImage: 'url(' + image.src + ')' }"></div>
           <div class="card-body">
-            <h5 class="card-title">{{ image.title }}</h5>
-            <p class="card-text">{{ image.description }}</p>
+            <div class="card-title">{{ image.title }}</div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Lightbox Modal -->
+    
     <div v-if="lightbox.visible" class="lightbox-modal" @click.self="closeLightbox">
-      <img :src="`${images[lightbox.currentIndex].src}`" class="lightbox-image" :alt="images[lightbox.currentIndex].title">
+      <button class="lightbox-close" @click.stop="closeLightbox">X</button>
+
+      <div class="lightbox-imageinfo">
+        <!-- Image Preview -->
+        <img :src="`${images[lightbox.currentIndex].src}`" class="lightbox-image" :alt="images[lightbox.currentIndex].title">
+
+        <!-- Image Title and Description -->
+        <div class="lightbox-info">
+          <h3 class="lightbox-title">{{ images[lightbox.currentIndex].title }}</h3>
+          <p class="lightbox-description">{{ images[lightbox.currentIndex].description }}</p>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
       <button class="nav-btn left" @click.stop.prevent="navigate('prev')">&lt;</button>
       <button class="nav-btn right" @click.stop.prevent="navigate('next')">&gt;</button>
-      
-      <div class="thumbnail-container">
+
+      <!-- Thumbnail List -->
+      <div class="thumbnail-container" ref="thumbnailContainer">
         <img v-for="(image, index) in images" :key="image.id"
              :src="`${image.src}`"
              class="thumbnail"
-             @click.stop.prevent="setImage(index)">
+             :class="{ active: index === lightbox.currentIndex }"
+             @click.stop.prevent="setImage(index)"
+             :ref="`thumb-${index}`">
       </div>
     </div>
   </div>
@@ -64,6 +80,10 @@ export default {
     this.currentAlbumFolder = this.path;
     await this.fetchAlbumInfo();
     await this.fetchImages();
+    document.addEventListener('keydown', this.handleKeydown);
+  },
+  beforeUnmount() {
+    document.removeEventListener('keydown', this.handleKeydown);
   },
   methods: {
     isAbsolutePath(url) {
@@ -112,9 +132,35 @@ export default {
       } else if (direction === 'prev') {
         this.lightbox.currentIndex = (this.lightbox.currentIndex + imagesCount - 1) % imagesCount;
       }
+      this.$nextTick(() => {
+        this.ensureThumbnailVisible(this.lightbox.currentIndex);
+      });
     },
     setImage(index) {
       this.lightbox.currentIndex = index;
+      this.ensureThumbnailVisible(index);
+    },
+    handleKeydown(e) {
+      if (!this.lightbox.visible) return;
+      if (e.key === 'ArrowRight') {
+        this.navigate('next');
+      } else if (e.key === 'ArrowLeft') {
+        this.navigate('prev');
+      } else if (e.key === 'Escape') {
+        this.closeLightbox();
+      }
+    },
+    ensureThumbnailVisible(index) {
+      const container = this.$refs.thumbnailContainer;
+      const activeThumb = this.$refs[`thumb-${index}`][0];
+      if (container && activeThumb) {
+        const containerRect = container.getBoundingClientRect();
+        console.log(containerRect);
+        const thumbRect = activeThumb.getBoundingClientRect();
+        if (thumbRect.left < containerRect.left || thumbRect.right > containerRect.right) {
+          container.scrollLeft += thumbRect.left - containerRect.left - (containerRect.width / 2) + (thumbRect.width / 2);
+        }
+      }
     },
   }
 };
@@ -171,23 +217,74 @@ export default {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.8);
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 1050; /* Ensure it's above other content */
+  z-index: 1050;
 }
 
-.lightbox-image {
+.lightbox-imageinfo {
   max-width: 80%;
+  max-height: 90%;
+}
+
+
+.lightbox-image {
+  width: 100%;
   max-height: 80%;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: none;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 24px;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-stretch: expanded;
+}
+
+.lightbox-info {
+  color: #fff;
+  text-align: left;
+  padding: 4px;
+  width: 100%;
+}
+
+.lightbox-title {
+  margin-top: 0px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.lightbox-description {
+  margin-top: 2px;
+  font-size: 12px;
 }
 
 .nav-btn {
   position: absolute;
-  top: 50%;
+  top: 40%;
   transform: translateY(-50%);
   background-color: #fff;
   border: none;
   cursor: pointer;
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  color: #000;
 }
 
 .left { left: 10px; }
@@ -199,17 +296,29 @@ export default {
   left: 50%;
   transform: translateX(-50%);
   display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 .thumbnail {
-  width: 50px;
+  width: 14vw;
+  height: 14vw;
+  max-height: 100px;
   margin: 0 5px;
   cursor: pointer;
   opacity: 0.7;
+  transition: opacity 0.3s ease;
 }
 
 .thumbnail:hover {
   opacity: 1;
+}
+
+.thumbnail.active {
+  opacity: 1;
+  outline: 2px solid #2196F3;
+  outline-offset: -2px;
 }
 
 .square-image {
