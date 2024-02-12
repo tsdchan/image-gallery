@@ -1,7 +1,6 @@
 <!-- src/components/TheHeader.vue -->
-
 <template>
-  <header>
+  <header class="container">
     <nav>
       <!-- Navigation items -->
     </nav>

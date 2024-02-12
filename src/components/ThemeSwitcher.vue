@@ -1,15 +1,23 @@
 <!-- src/components/ThemeSwitcher.vue -->
-
 <template>
-  <div class="theme-switcher">
-    <button id="fullscreenToggle" @click="toggleFullScreen">Fullscreen</button>
-    <span>Dark Mode:</span>
-    <label class="switch">
+  <div class="theme-switcher d-flex align-items-center justify-content-end gap-2 px-2">
+    <div class="text-center" id="fullscreenToggle">
+      <label class="switch mb-0">
+        <input type="checkbox" :checked="isFullscreen" @change="toggleFullScreen" aria-label="Toggle fullscreen mode">
+        <span class="slider round"></span>
+      </label>
+      <div class="label-text mt-1" style="font-size: 0.75rem;">Fullscreen</div>
+    </div>
+    <div class="text-center">
+      <label class="switch mb-0">
         <input type="checkbox" :checked="isDarkMode" @change="toggleTheme" aria-label="Toggle dark mode">
         <span class="slider round"></span>
-    </label>
+      </label>
+      <div class="label-text mt-1" style="font-size: 0.75rem;">Dark Mode</div>
+    </div>
   </div>
 </template>
+
 
 <script>
 export default {
@@ -17,6 +25,7 @@ export default {
   data() {
     return {
       isDarkMode: false, // Initial state of the theme
+      isFullscreen: false,
     };
   },
   methods: {
@@ -28,12 +37,13 @@ export default {
     },
     toggleFullScreen() {
         if (!document.fullscreenElement) {
-        this.requestFullScreen(document.documentElement); // Pass the element you want to display in fullscreen mode
+            this.requestFullScreen(document.documentElement);
         } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
         }
-        }
+        this.isFullscreen = !document.fullscreenElement;
     },
     requestFullScreen(element) {
         if (element.requestFullscreen) {
@@ -65,10 +75,10 @@ export default {
 <style scope>
 .theme-switcher {
   display: flex;
-  align-items: center; /* Vertically center align items */
-  justify-content: flex-end; /* Align items to the right */
-  gap: 10px; /* Spacing between the text and the switch */
-  padding: 10px; /* Padding around the switcher for better touch targets on mobile */
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px;
 }
 
 /* The switch - the box around the slider */

@@ -1,16 +1,26 @@
 <template>
   <div class="container mt-2">
+    <div v-if="loading" class="text-center">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
     <!-- Breadcrumb Navigation -->
     <nav aria-label="breadcrumb" class="breadcrumb-container">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-          <router-link to="/">Album List</router-link>
-        </li>
-        <li class="breadcrumb-item active" aria-current="page">{{ albumTitle }}</li>
-      </ol>
+      <div class="container-fluid">
+        <div class="d-flex justify-content-between flex-wrap">
+          <ol class="breadcrumb mb-0 flex-grow-1">
+            <li class="breadcrumb-item">
+              <router-link to="/">Home</router-link>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ albumTitle }}</li>
+          </ol>
+          <button class="btn btn-primary ms-3" @click.stop.prevent="downloadAlbum">Download Album</button>
+        </div>
+      </div>
     </nav>
 
-    <div class="description mb-4">{{albumDescription}}</div>
+    <div class="description mb-4 mt-2">{{albumDescription}}</div>
 
     <!-- Image Gallery Grid -->
     <div class="row">
@@ -23,13 +33,13 @@
     </div>
 
     <!-- Lightbox Modal -->
-    <div v-if="lightbox.visible" class="lightbox-modal" @click.self="closeLightbox" 
-        @touchstart="handleTouchStart" 
-        @touchmove="handleTouchMove" 
-        @touchend="handleTouchEnd">
+    <div v-if="lightbox.visible" class="lightbox-modal" @click.self="closeLightbox">
       <button class="lightbox-close" @click.stop="closeLightbox">X</button>
       <!-- Image Preview -->
-      <img :src="`${images[lightbox.currentIndex].src}`" class="lightbox-image" :alt="images[lightbox.currentIndex].title">
+      <img :src="`${images[lightbox.currentIndex].src}`" class="lightbox-image" :alt="images[lightbox.currentIndex].title" 
+        @touchstart="handleTouchStart" 
+        @touchmove="handleTouchMove" 
+        @touchend="handleTouchEnd" >
 
       <!-- Image Title and Description -->
       <div class="lightbox-info">
@@ -56,12 +66,15 @@
 
 <script>
 import axios from 'axios';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 export default {
   props: ['path'],
   data() {
     return {
       images: [],
+      loading: false,
       currentAlbumFolder: '',
       albumTitle: '',
       albumDescription: '',
@@ -91,11 +104,13 @@ export default {
       return /^(?:[a-z]+:)?\/\//i.test(url);
     },
     resolvePath(path) {
-      return this.isAbsolutePath(path) ? path : `${process.env.VUE_APP_BASE_URL}${path}`;
+      const baseUrl = window.VUE_APP_BASE_URL || '/';
+      return this.isAbsolutePath(path) ? path : `${baseUrl}${path}`;
     },
     async fetchAlbumInfo() {
       try {
-        const albumsResponse = await axios.get(`${process.env.VUE_APP_BASE_URL}albums.json`); // Use baseURL
+        const baseUrl = window.VUE_APP_BASE_URL || '/';
+        const albumsResponse = await axios.get(`${baseUrl}albums.json`); // Use baseURL
         const currentAlbum = albumsResponse.data.albums.find(album => album.path === this.path);
         if (currentAlbum) {
           this.albumTitle = currentAlbum.title;
@@ -110,6 +125,7 @@ export default {
     },
     async fetchImages() {
       try {
+        this.loading = true;
         const response = await axios.get(this.resolvePath(this.albumJson));
         this.images = response.data.images.map(image => ({
           ...image,
@@ -117,14 +133,18 @@ export default {
         }));
       } catch (error) {
         console.error("There was an error fetching the images:", error);
+      } finally {
+          this.loading = false; // Stop loading
       }
     },
     openLightbox(index) {
       this.lightbox.currentIndex = index;
       this.lightbox.visible = true;
+      document.body.style.overflow = 'hidden';
     },
     closeLightbox() {
       this.lightbox.visible = false;
+      document.body.style.overflow = '';
     },
     navigate(direction) {
       const imagesCount = this.images.length;
@@ -176,7 +196,7 @@ export default {
       this.lightbox.touchEndY = event.touches[0].clientY;
     },
     handleTouchEnd() {
-      if (!this.lightbox.touchEndX || !this.lightbox.touchEndY) return; // Ensure touch move happened
+      if (!this.lightbox.touchEndX || !this.lightbox.touchEndY) return;
       const deltaX = this.lightbox.touchEndX - this.lightbox.touchStartX;
       const deltaY = this.lightbox.touchEndY - this.lightbox.touchStartY;
       const absDeltaX = Math.abs(deltaX);
@@ -191,7 +211,34 @@ export default {
           this.navigate('next'); // Swipe left to right
         }
       }
-    }
+    },
+    async downloadAlbum() {
+    const zip = new JSZip();
+    const imgFolder = zip.folder('downloadAlbum');
+
+    // Map each image to a promise that fetches and adds it to the zip
+    const imagePromises = this.images.map(image => {
+      return fetch(image.src)
+        .then(response => {
+          if (!response.ok) {
+            //throw new Error('Network response was not ok');
+          }
+          return response.blob();
+        })
+        .then(blob => {
+          imgFolder.file(image.title + '.jpg', blob, { binary: true });
+        })
+        .catch(error => { error; });
+    });
+
+    // Use Promise.allSettled to wait for all fetch operations to complete
+    await Promise.allSettled(imagePromises);
+
+    // Generate and download the zip file
+    zip.generateAsync({ type: 'blob' }).then(content => {
+      saveAs(content, 'albumTitle.zip');
+    });
+  }
   },
 };
 </script>
@@ -201,10 +248,13 @@ export default {
   font-weight: 300;
 }
 
-.breadcrumb-container .breadcrumb {
+.breadcrumb-container {
   background-color: #d8d8d8;
   border-radius: 10px;
-  padding: .75rem 1rem;
+  padding: .1rem .1rem;
+}
+
+.breadcrumb-container .breadcrumb {
 }
 
 .breadcrumb-container .breadcrumb-item + .breadcrumb-item::before {
@@ -215,6 +265,13 @@ export default {
   padding: 1rem 0;
   background: none;
   margin-bottom: 1rem;
+}
+
+.breadcrumb-item.active {
+  max-width: 500px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .gallery {
@@ -278,8 +335,8 @@ export default {
 
 .lightbox-info {
   color: #fff;
-  text-align: center; /* Center-align the text for aesthetics */
-  padding: 4px; /* Add some padding around the text for readability */
+  text-align: center;
+  padding: 4px;
   width: 80%;
 }
 
@@ -331,7 +388,8 @@ export default {
 .thumbnail {
   width: 14vw;
   height: 14vw;
-  max-height: 100px;
+  max-width: 80px;
+  max-height: 80px;
   margin: 0 5px;
   cursor: pointer;
   opacity: 0.7;
@@ -349,11 +407,31 @@ export default {
 }
 
 .square-image {
-  width: 100%; /* Ensure the container spans the full width of its parent */
-  padding-top: 100%; /* This creates a square aspect ratio */
+  width: 100%;
+  padding-top: 100%;
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
+}
+
+@media (max-width: 768px) {
+  .breadcrumb-container .breadcrumb {
+    flex-wrap: wrap;
+  }
+
+  .breadcrumb-container .btn {
+    width: 100%;
+    margin: 0;
+    margin-bottom: 10px;
+    margin-left: 0 !important;
+  }
+
+  .breadcrumb-item.active {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 @media (max-width: 1023px) and (orientation: landscape) {
