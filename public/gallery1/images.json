@@ -7,16 +7,16 @@
         "description": "Sample description for image 1."
         },
         {
-        "id": 2,
-        "src": "https://th.bing.com/th/id/OIG.LTaVFacabNQc22SAk1r1?w=1024&h=1024&rs=1&pid=ImgDetMain",
-        "title": "Online Image 1",
-        "description": "Online Sample description for image 1."
+        "id": 1,
+        "src": "gallery1/image02.jpeg",
+        "title": "Image 1",
+        "description": "Sample description for image 1."
         },
         {
-        "id": 3,
-        "src": "https://lokeshdhakar.com/projects/lightbox2/images/image-5.jpg",
-        "title": "Image 3",
-        "description": "Sample description for image 3."
+        "id": 1,
+        "src": "gallery1/image03.jpeg",
+        "title": "Image 1",
+        "description": "Sample description for image 1."
         },
         {
         "id": 4,

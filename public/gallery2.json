@@ -1,10 +1,22 @@
 {
     "images": [
         {
-        "id": 1,
-        "src": "https://wallpapers.com/images/featured-full/scenery-4nho1u78dzvt1meo.jpg",
-        "title": "Online Image 1",
-        "description": "Online Sample description for image 1."
+            "id": 1,
+            "src": "https://upload.wikimedia.org/wikipedia/commons/4/4f/World_topic_image_Satellite_image.jpg",
+            "title": "The Earth",
+            "description": "World topic image Satellite"
+        },
+        {
+            "id": 2,
+            "src": "https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA1L3Vwd2s2MTcyNzgwOS13aWtpbWVkaWEtaW1hZ2Uta293YmVxYTQuanBn.jpg",
+            "title": "Nature",
+            "description": "A long wooden pier on a smooth lake. Original public domain image from"
+        },
+        {
+            "id": 3,
+            "src": "https://img3.wallspic.com/crops/6/4/7/6/4/146746/146746-fjord-water-travel-adventure_travel-horizon-3114x3892.jpg",
+            "title": "Water",
+            "description": "Water, Body of Water, Pier, Lake, Dock Wallpaper"
         }
     ]
 }
