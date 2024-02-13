@@ -1,0 +1,21 @@
+{
+    "albums": [
+      {
+        "id": 1,
+        "title": "Album 1",
+        "path": "gallery1",
+        "description": "Description of Album 1",
+        "thumbnail": "https://wallpapers.com/images/featured-full/scenery-4nho1u78dzvt1meo.jpg",
+        "json": "gallery1/images.json"
+      },
+      {
+        "id": 2,
+        "title": "Album 2",
+        "path": "gallery2",
+        "description": "Description of Album 2",
+        "thumbnail": "https://th.bing.com/th/id/OIG.LTaVFacabNQc22SAk1r1?w=1024&h=1024&rs=1&pid=ImgDetMain",
+        "json": "gallery2.json"
+      }
+    ]
+  }
+  
