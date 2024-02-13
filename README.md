@@ -48,6 +48,7 @@ This document provides instructions on how to install and deploy the Image Galle
      <script>
        var baseUrl = '/subdirectory/';
        document.write('<base href="' + baseUrl + '" />');
+       window.VUE_APP_BASE_URL = baseUrl;
      </script>
      ```
 
