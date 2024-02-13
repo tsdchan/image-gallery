@@ -176,7 +176,6 @@ export default {
       const activeThumb = this.$refs[`thumb-${index}`][0];
       if (container && activeThumb) {
         const containerRect = container.getBoundingClientRect();
-        console.log(containerRect);
         const thumbRect = activeThumb.getBoundingClientRect();
         if (thumbRect.left < containerRect.left || thumbRect.right > containerRect.right) {
           container.scrollLeft += thumbRect.left - containerRect.left - (containerRect.width / 2) + (thumbRect.width / 2);
